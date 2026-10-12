@@ -1,19 +1,10 @@
-/***/
 /**
- * Common functionalities for the kargo plugin.
+ * Common types, constants, and helpers shared by the Kargo frontend and
+ * backend plugins.
  *
  * @packageDocumentation
  */
 
-/**
- * In this package you might for example declare types that are common
- * between the frontend and backend plugin packages.
- */
-export type CommonType = {
-  field: string;
-};
-
-/**
- * Or you might declare some common constants.
- */
-export const COMMON_CONSTANT = 1;
+export * from './annotations';
+export * from './types';
+export * from './helpers';
