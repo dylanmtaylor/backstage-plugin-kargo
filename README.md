@@ -193,7 +193,7 @@ This repository is a Backstage workspace. It contains an example app and backend
 ```sh
 corepack enable
 yarn install
-yarn tsc
+yarn tsc:full
 yarn lint:all
 CI=true yarn test
 yarn build:all

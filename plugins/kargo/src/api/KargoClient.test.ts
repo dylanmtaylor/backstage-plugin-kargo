@@ -8,7 +8,7 @@ describe('KargoClient', () => {
 
   function setup(body: unknown, status = 200) {
     const fetch = jest.fn(
-      async () =>
+      async (_url: string, _init?: RequestInit) =>
         new Response(JSON.stringify(body), {
           status,
           headers: { 'Content-Type': 'application/json' },

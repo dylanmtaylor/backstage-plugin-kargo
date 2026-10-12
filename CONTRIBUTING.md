@@ -16,7 +16,7 @@ Node.js 22 or 24 is required. The repository uses Yarn 4 through corepack.
 Run every gate before you open a pull request:
 
 ```sh
-yarn tsc
+yarn tsc:full
 yarn lint:all
 yarn prettier:check
 CI=true yarn test

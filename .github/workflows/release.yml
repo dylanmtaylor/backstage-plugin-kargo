@@ -39,7 +39,7 @@ jobs:
 
       - name: Verify
         run: |
-          yarn tsc
+          yarn tsc:full
           yarn test
           yarn backstage-cli repo build --all
 

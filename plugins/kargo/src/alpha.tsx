@@ -9,6 +9,7 @@ import {
   EntityContentBlueprint,
 } from '@backstage/plugin-catalog-react/alpha';
 import { convertLegacyRouteRef } from '@backstage/core-compat-api';
+import { FilterPredicate } from '@backstage/filter-predicates';
 import { KARGO_ANNOTATIONS } from '@dylanmtaylor/backstage-plugin-kargo-common';
 import { KargoClient, kargoApiRef } from './api';
 import { rootRouteRef } from './routes';
@@ -16,9 +17,14 @@ import { rootRouteRef } from './routes';
 /**
  * The entity filter that selects entities with the Kargo project annotation.
  */
-const kargoEntityFilter = {
-  [`metadata.annotations.${KARGO_ANNOTATIONS.PROJECT}`]: { $exists: true },
+const kargoEntityFilter: FilterPredicate = {
+  'metadata.annotations.kargo.akuity.io/project': { $exists: true },
 };
+
+// A literal key is required above so that TypeScript can type the predicate.
+// This check fails to compile if the annotation constant changes.
+const projectAnnotation: 'kargo.akuity.io/project' = KARGO_ANNOTATIONS.PROJECT;
+void projectAnnotation;
 
 /**
  * The Kargo API extension.

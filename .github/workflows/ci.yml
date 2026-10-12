@@ -51,7 +51,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Type check
-        run: yarn tsc
+        run: yarn tsc:full
 
       - name: Lint
         run: yarn lint:all
