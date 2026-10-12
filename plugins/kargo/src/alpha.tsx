@@ -16,9 +16,9 @@ import { rootRouteRef } from './routes';
 /**
  * The entity filter that selects entities with the Kargo project annotation.
  */
-const kargoEntityFilter = `has(metadata.annotations.${JSON.stringify(
-  KARGO_ANNOTATIONS.PROJECT,
-)})`;
+const kargoEntityFilter = {
+  [`metadata.annotations.${KARGO_ANNOTATIONS.PROJECT}`]: { $exists: true },
+};
 
 /**
  * The Kargo API extension.
