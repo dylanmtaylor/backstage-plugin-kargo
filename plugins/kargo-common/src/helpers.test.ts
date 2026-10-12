@@ -133,8 +133,15 @@ describe('helpers', () => {
             },
           ],
           charts: [
-            { repoURL: 'https://charts.example.com', name: 'app', version: '2.0.0' },
-            { repoURL: 'oci://registry.example.com/charts/other', version: '3.0.0' },
+            {
+              repoURL: 'https://charts.example.com',
+              name: 'app',
+              version: '2.0.0',
+            },
+            {
+              repoURL: 'oci://registry.example.com/charts/other',
+              version: '3.0.0',
+            },
           ],
           artifacts: [{ artifactType: 'blob', version: '7' }, {}],
         }),

@@ -1,129 +1,73 @@
 import {
   mockCredentials,
+  mockServices,
   startTestBackend,
 } from '@backstage/backend-test-utils';
-import { createServiceFactory } from '@backstage/backend-plugin-api';
-import { todoListServiceRef } from './services/TodoListService';
-import { kargoPlugin } from './plugin';
 import request from 'supertest';
-import { catalogServiceMock } from '@backstage/plugin-catalog-node/testUtils';
-import {
-  ConflictError,
-  AuthenticationError,
-  NotAllowedError,
-} from '@backstage/errors';
+import { kargoPlugin } from './plugin';
 
-// TEMPLATE NOTE:
-// Plugin tests are integration tests for your plugin, ensuring that all pieces
-// work together end-to-end. You can still mock injected backend services
-// however, just like anyone who installs your plugin might replace the
-// services with their own implementations.
-describe('plugin', () => {
-  it('should create and read TODO items', async () => {
+describe('kargoPlugin', () => {
+  it('serves the health endpoint without authentication', async () => {
     const { server } = await startTestBackend({
-      features: [kargoPlugin],
+      features: [kargoPlugin, mockServices.rootConfig.factory({ data: {} })],
     });
-
-    await request(server).get('/api/kargo/todos').expect(200, {
-      items: [],
-    });
-
-    const createRes = await request(server)
-      .post('/api/kargo/todos')
-      .send({ title: 'My Todo' });
-
-    expect(createRes.status).toBe(201);
-    expect(createRes.body).toEqual({
-      id: expect.any(String),
-      title: 'My Todo',
-      createdBy: mockCredentials.user().principal.userEntityRef,
-      createdAt: expect.any(String),
-    });
-
-    const createdTodoItem = createRes.body;
 
     await request(server)
-      .get('/api/kargo/todos')
-      .expect(200, {
-        items: [createdTodoItem],
-      });
-
-    await request(server)
-      .get(`/api/kargo/todos/${createdTodoItem.id}`)
-      .expect(200, createdTodoItem);
+      .get('/api/kargo/health')
+      .set('Authorization', mockCredentials.none.header())
+      .expect(200, { status: 'ok' });
   });
 
-  it('should create TODO item with catalog information', async () => {
+  it('lists configured instances without exposing credentials', async () => {
     const { server } = await startTestBackend({
       features: [
         kargoPlugin,
-        catalogServiceMock.factory({
-          entities: [
-            {
-              apiVersion: 'backstage.io/v1alpha1',
-              kind: 'Component',
-              metadata: {
-                name: 'my-component',
-                namespace: 'default',
-                title: 'My Component',
-              },
-              spec: {
-                type: 'service',
-                owner: 'me',
-              },
+        mockServices.rootConfig.factory({
+          data: {
+            kargo: {
+              instances: [
+                {
+                  name: 'prod',
+                  url: 'https://kargo.example.com',
+                  token: 'super-secret',
+                },
+              ],
             },
-          ],
+          },
         }),
       ],
     });
 
-    const createRes = await request(server)
-      .post('/api/kargo/todos')
-      .send({ title: 'My Todo', entityRef: 'component:default/my-component' });
-
-    expect(createRes.status).toBe(201);
-    expect(createRes.body).toEqual({
-      id: expect.any(String),
-      title: '[My Component] My Todo',
-      createdBy: mockCredentials.user().principal.userEntityRef,
-      createdAt: expect.any(String),
+    const response = await request(server).get('/api/kargo/instances');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      items: [{ name: 'prod', url: 'https://kargo.example.com' }],
     });
+    expect(response.text).not.toContain('super-secret');
   });
 
-  it('should forward errors from the TodoListService', async () => {
+  it('requires authentication for data routes', async () => {
     const { server } = await startTestBackend({
-      features: [
-        kargoPlugin,
-        createServiceFactory({
-          service: todoListServiceRef,
-          deps: {},
-          factory: () => ({
-            createTodo: jest.fn().mockRejectedValue(new ConflictError()),
-            listTodos: jest.fn().mockRejectedValue(new AuthenticationError()),
-            getTodo: jest.fn().mockRejectedValue(new NotAllowedError()),
-          }),
-        })
-      ],
+      features: [kargoPlugin, mockServices.rootConfig.factory({ data: {} })],
     });
 
-    const createRes = await request(server)
-      .post('/api/kargo/todos')
-      .send({ title: 'My Todo', entityRef: 'component:default/my-component' });
-    expect(createRes.status).toBe(409);
-    expect(createRes.body).toMatchObject({
-      error: { name: 'ConflictError' },
+    await request(server)
+      .get('/api/kargo/instances')
+      .set('Authorization', mockCredentials.none.header())
+      .expect(401);
+  });
+
+  it('returns 404 when no instance is configured', async () => {
+    const { server } = await startTestBackend({
+      features: [kargoPlugin, mockServices.rootConfig.factory({ data: {} })],
     });
 
-    const listRes = await request(server).get('/api/kargo/todos');
-    expect(listRes.status).toBe(401);
-    expect(listRes.body).toMatchObject({
-      error: { name: 'AuthenticationError' },
-    });
-
-    const getRes = await request(server).get('/api/kargo/todos/123');
-    expect(getRes.status).toBe(403);
-    expect(getRes.body).toMatchObject({
-      error: { name: 'NotAllowedError' },
-    });
+    const response = await request(server).get(
+      '/api/kargo/projects/demo/stages',
+    );
+    expect(response.status).toBe(404);
+    expect(response.body.error.message).toContain(
+      'No Kargo instances are configured',
+    );
   });
 });

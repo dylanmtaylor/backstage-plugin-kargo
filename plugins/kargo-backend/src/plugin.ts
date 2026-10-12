@@ -3,10 +3,11 @@ import {
   createBackendPlugin,
 } from '@backstage/backend-plugin-api';
 import { createRouter } from './router';
-import { todoListServiceRef } from './services/TodoListService';
+import { createKargoService } from './services/KargoService';
 
 /**
- * kargoPlugin backend plugin
+ * The Kargo backend plugin. It proxies read-only requests to one or more
+ * Kargo API servers and keeps credentials on the backend.
  *
  * @public
  */
@@ -15,17 +16,15 @@ export const kargoPlugin = createBackendPlugin({
   register(env) {
     env.registerInit({
       deps: {
-        httpAuth: coreServices.httpAuth,
+        logger: coreServices.logger,
+        config: coreServices.rootConfig,
+        cache: coreServices.cache,
         httpRouter: coreServices.httpRouter,
-        todoList: todoListServiceRef,
       },
-      async init({ httpAuth, httpRouter, todoList }) {
-        httpRouter.use(
-          await createRouter({
-            httpAuth,
-            todoList,
-          }),
-        );
+      async init({ logger, config, cache, httpRouter }) {
+        const kargoService = createKargoService({ config, logger, cache });
+        httpRouter.use(await createRouter({ kargoService }));
+        httpRouter.addAuthPolicy({ path: '/health', allow: 'unauthenticated' });
       },
     });
   },
