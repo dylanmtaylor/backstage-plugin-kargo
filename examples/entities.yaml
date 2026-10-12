@@ -12,6 +12,9 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: example-website
+  annotations:
+    # Show Kargo Stages, Warehouses, and Promotions for this component.
+    kargo.akuity.io/project: kargo-demo
 spec:
   type: website
   lifecycle: experimental

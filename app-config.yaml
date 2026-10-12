@@ -228,3 +228,16 @@ permission:
 mcpActions:
   name: 'My Company Backstage' # defaults to "backstage"
   description: 'Tools for managing your software catalog, creating new services from templates, and exploring your developer portal' # optional
+
+kargo:
+  # One or more Kargo API servers. The first instance is the default.
+  # See plugins/kargo-backend/config.d.ts for every option.
+  instances:
+    - name: local
+      url: ${KARGO_URL}
+      # Use one of token or adminPassword.
+      adminPassword: ${KARGO_ADMIN_PASSWORD}
+      # Use only in development against a self-signed certificate.
+      skipTLSVerify: true
+  cacheTtlSeconds: 10
+  requestTimeoutMs: 15000
