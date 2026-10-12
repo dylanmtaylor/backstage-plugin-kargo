@@ -67,7 +67,7 @@ jobs:
         run: |
           # npm 11.5.1 or later supports OIDC trusted publishing.
           npm install --global npm@latest
-          for tarball in artifacts/kargo-common.tgz artifacts/kargo-backend.tgz artifacts/kargo.tgz; do
+          for tarball in ./artifacts/kargo-common.tgz ./artifacts/kargo-backend.tgz ./artifacts/kargo.tgz; do
             npm publish "$tarball" --access public --provenance
           done
 
