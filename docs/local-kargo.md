@@ -1,11 +1,39 @@
 # Run Kargo in Docker Desktop
 
-This guide creates a local Kargo API server for plugin development. It follows the [Kargo quickstart](https://docs.kargo.io/quickstart) and uses the Kubernetes cluster built in to Docker Desktop.
+This guide creates a local Kargo API server for plugin development. It follows the [Kargo quickstart](https://docs.kargo.io/quickstart) and runs on Docker Desktop.
 
 ## Requirements
 
-- Docker Desktop with Kubernetes enabled.
+- Docker Desktop.
 - `kubectl` and `helm` 3.13.1 or later.
+- Either Kubernetes enabled in Docker Desktop, or [`kind`](https://kind.sigs.k8s.io) for a disposable cluster.
+
+## Option A: a disposable kind cluster
+
+This path leaves the Docker Desktop settings unchanged and is easy to delete. It maps the Kargo NodePort to `localhost:31081`.
+
+```sh
+brew install kind
+
+cat <<'KIND' > /tmp/kind-kargo.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: kargo-plugin
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 31081
+        hostPort: 31081
+KIND
+
+kind create cluster --config /tmp/kind-kargo.yaml --wait 120s
+```
+
+`kind create cluster` switches the current kubectl context to `kind-kargo-plugin`. Pass `--context kind-kargo-plugin` to `kubectl` and `--kube-context kind-kargo-plugin` to `helm` if you also work with other clusters.
+
+## Option B: Docker Desktop Kubernetes
+
+Enable Kubernetes in the Docker Desktop settings and select the `docker-desktop` kubectl context.
 
 ## Install Kargo
 
@@ -63,7 +91,28 @@ KARGO_URL=http://localhost:31081 KARGO_ADMIN_PASSWORD=admin \
 curl -s http://localhost:7007/api/kargo/projects/kargo-demo/stages | jq '.items[].metadata.name'
 ```
 
+## Create a Promotion
+
+The plugin is read-only. Use the Kargo UI, the `kargo` CLI, or the API to promote Freight so the Promotions table has data:
+
+```sh
+TOKEN=$(curl -s -X POST -H 'Authorization: Bearer admin' \
+  http://localhost:31081/v1beta1/login | jq -r .idToken)
+FREIGHT=$(kubectl get freight -n kargo-demo -o jsonpath='{.items[0].metadata.name}')
+curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d "{\"freight\":\"$FREIGHT\"}" \
+  http://localhost:31081/v1beta1/projects/kargo-demo/stages/test/promotions
+```
+
 ## Clean up
+
+With kind:
+
+```sh
+kind delete cluster --name kargo-plugin
+```
+
+With Docker Desktop Kubernetes:
 
 ```sh
 helm uninstall kargo -n kargo
