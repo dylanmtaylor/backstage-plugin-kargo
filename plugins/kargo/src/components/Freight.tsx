@@ -71,14 +71,30 @@ export function FreightLink(props: {
       </Typography>
     );
   }
-  if (!props.uiUrl) {
-    return <Typography variant="body2">{name}</Typography>;
+  // Freight names are 40 character hashes. Show a short form when there is
+  // no alias and keep the full name in a tooltip.
+  const label = isFreightHash(name) ? name.slice(0, 12) : name;
+  const content = props.uiUrl ? (
+    <Link to={kargoUiLinks.freight(props.uiUrl, props.project, name)}>
+      {label}
+    </Link>
+  ) : (
+    <Typography variant="body2" component="span">
+      {label}
+    </Typography>
+  );
+  if (label === name) {
+    return content;
   }
   return (
-    <Link to={kargoUiLinks.freight(props.uiUrl, props.project, name)}>
-      {name}
-    </Link>
+    <Tooltip title={name}>
+      <span>{content}</span>
+    </Tooltip>
   );
+}
+
+function isFreightHash(value: string): boolean {
+  return /^[0-9a-f]{40}$/.test(value);
 }
 
 /**

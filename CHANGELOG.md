@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `@dylanmtaylor/backstage-plugin-kargo-common`: annotation constants, Kargo resource types, and helpers for Kargo UI links and Freight summaries.
 - `@dylanmtaylor/backstage-plugin-kargo-backend`: a read-only proxy to the Kargo REST API (`/v1beta1`) with support for many instances, bearer token or admin password authentication, token refresh, request timeouts, response caching, and optional TLS verification skip.
+- Verified end to end against Kargo 1.12.3 running in a kind cluster on Docker Desktop.
 - `@dylanmtaylor/backstage-plugin-kargo`: entity cards for Stages, Promotions, and Warehouses, a Kargo entity tab, hooks, a frontend API client, `MockKargoApi` for tests, and support for the legacy and new frontend systems.
 
 [Unreleased]: https://github.com/dylanmtaylor/backstage-plugin-kargo/compare/v0.1.0...HEAD

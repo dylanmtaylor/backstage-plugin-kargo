@@ -1,9 +1,9 @@
 # A minimal Kargo Project for local plugin development.
 #
-# The Warehouse watches the public nginx image. The Stages have no promotion
-# steps, so a promotion only records the Freight and finishes. This is enough
-# to populate every view in the Backstage plugin without a Git repository or
-# Argo CD.
+# The Warehouse watches the public nginx image. Each Stage has one no-op
+# promotion step (compose-output), so a promotion only records the Freight and
+# finishes. This is enough to populate every view in the Backstage plugin
+# without a Git repository or Argo CD.
 #
 #   kubectl apply -f docs/examples/kargo-demo.yaml
 #
@@ -38,7 +38,11 @@ spec:
         direct: true
   promotionTemplate:
     spec:
-      steps: []
+      steps:
+        - uses: compose-output
+          as: noop
+          config:
+            promoted: ${{ ctx.stage }}
 ---
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
@@ -55,7 +59,11 @@ spec:
           - test
   promotionTemplate:
     spec:
-      steps: []
+      steps:
+        - uses: compose-output
+          as: noop
+          config:
+            promoted: ${{ ctx.stage }}
 ---
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
@@ -72,4 +80,8 @@ spec:
           - uat
   promotionTemplate:
     spec:
-      steps: []
+      steps:
+        - uses: compose-output
+          as: noop
+          config:
+            promoted: ${{ ctx.stage }}
