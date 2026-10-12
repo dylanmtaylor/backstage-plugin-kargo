@@ -1,3 +1,10 @@
-import { createRouteRef } from '@backstage/frontend-plugin-api';
+import { createRouteRef } from '@backstage/core-plugin-api';
 
-export const rootRouteRef = createRouteRef();
+/**
+ * The root route for the Kargo entity content.
+ *
+ * @public
+ */
+export const rootRouteRef = createRouteRef({
+  id: 'kargo',
+});
