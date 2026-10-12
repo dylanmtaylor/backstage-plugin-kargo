@@ -10,6 +10,25 @@ updates:
         patterns: ['@backstage/*']
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # Backstage pins the React and React Router major versions. Bump these
+      # together with a Backstage upgrade, not through Dependabot.
+      - dependency-name: react
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-dom
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react-dom'
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-router
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-router-dom
+        update-types: ['version-update:semver-major']
+      - dependency-name: express
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/express'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
