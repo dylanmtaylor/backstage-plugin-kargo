@@ -152,5 +152,8 @@ export function freightDisplayName(
   if ('metadata' in freight && freight.metadata?.name) {
     return freight.metadata.name;
   }
-  return freight.name ?? '';
+  if ('name' in freight && freight.name) {
+    return freight.name;
+  }
+  return '';
 }
