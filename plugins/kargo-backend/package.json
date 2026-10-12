@@ -11,7 +11,12 @@
   },
   "backstage": {
     "role": "backend-plugin",
-    "pluginId": "kargo"
+    "pluginId": "kargo",
+    "pluginPackages": [
+      "@dylanmtaylor/backstage-plugin-kargo",
+      "@dylanmtaylor/backstage-plugin-kargo-backend",
+      "@dylanmtaylor/backstage-plugin-kargo-common"
+    ]
   },
   "scripts": {
     "start": "backstage-cli package start",

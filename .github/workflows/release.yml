@@ -4,22 +4,29 @@ on:
   push:
     tags: ['v*.*.*']
 
-permissions:
-  contents: write
-  id-token: write
+permissions: {}
 
 jobs:
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
+    # id-token lets npm verify the workflow with OIDC trusted publishing. No
+    # long-lived npm token is stored in the repository. Configure each package
+    # on npmjs.com with this repository and workflow file as a trusted
+    # publisher before the first release.
+    permissions:
+      contents: write
+      id-token: write
     env:
       CI: true
     steps:
       - name: Check out
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
@@ -37,25 +44,35 @@ jobs:
           yarn backstage-cli repo build --all
 
       - name: Check tag matches package version
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
-          tag="${GITHUB_REF_NAME#v}"
+          version_tag="${TAG#v}"
           for pkg in plugins/kargo-common plugins/kargo-backend plugins/kargo; do
             version="$(node -p "require('./$pkg/package.json').version")"
-            if [ "$version" != "$tag" ]; then
-              echo "::error::$pkg is at $version but the tag is $tag"
+            if [ "$version" != "$version_tag" ]; then
+              echo "::error::$pkg is at $version but the tag is $version_tag"
               exit 1
             fi
           done
 
-      - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Pack
         run: |
+          mkdir -p artifacts
           for pkg in plugins/kargo-common plugins/kargo-backend plugins/kargo; do
-            (cd "$pkg" && yarn npm publish --access public --tolerate-republish)
+            (cd "$pkg" && yarn pack --out "../../artifacts/$(basename "$pkg").tgz")
+          done
+
+      - name: Publish with trusted publishing
+        run: |
+          # npm 11.5.1 or later supports OIDC trusted publishing.
+          npm install --global npm@latest
+          for tarball in artifacts/kargo-common.tgz artifacts/kargo-backend.tgz artifacts/kargo.tgz; do
+            npm publish "$tarball" --access public --provenance
           done
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           generate_release_notes: true
+          files: artifacts/*.tgz

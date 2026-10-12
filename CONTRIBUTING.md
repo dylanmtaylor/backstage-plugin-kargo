@@ -48,4 +48,4 @@ yarn backstage-cli repo fix --check
 
 ## Release
 
-Versions follow semantic versioning. Update `CHANGELOG.md`, bump the version in each `plugins/*/package.json`, tag the commit `vX.Y.Z`, and push the tag. The release workflow publishes the packages to npm.
+Versions follow semantic versioning. Update `CHANGELOG.md`, bump the version in each `plugins/*/package.json`, tag the commit `vX.Y.Z`, and push the tag. The release workflow packs the three packages and publishes them to npm with [trusted publishing](https://docs.npmjs.com/trusted-publishers) and provenance. No npm token is stored in the repository. Each package on npmjs.com must list this repository and `.github/workflows/release.yml` as a trusted publisher before the first release.

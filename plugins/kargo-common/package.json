@@ -13,7 +13,12 @@
   },
   "backstage": {
     "role": "common-library",
-    "pluginId": "kargo"
+    "pluginId": "kargo",
+    "pluginPackages": [
+      "@dylanmtaylor/backstage-plugin-kargo",
+      "@dylanmtaylor/backstage-plugin-kargo-backend",
+      "@dylanmtaylor/backstage-plugin-kargo-common"
+    ]
   },
   "sideEffects": false,
   "scripts": {
