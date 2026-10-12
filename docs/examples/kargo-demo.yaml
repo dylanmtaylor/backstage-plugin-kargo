@@ -1,0 +1,75 @@
+# A minimal Kargo Project for local plugin development.
+#
+# The Warehouse watches the public nginx image. The Stages have no promotion
+# steps, so a promotion only records the Freight and finishes. This is enough
+# to populate every view in the Backstage plugin without a Git repository or
+# Argo CD.
+#
+#   kubectl apply -f docs/examples/kargo-demo.yaml
+#
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Project
+metadata:
+  name: kargo-demo
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: main
+  namespace: kargo-demo
+spec:
+  subscriptions:
+    - image:
+        repoURL: public.ecr.aws/nginx/nginx
+        constraint: ^1.29.0
+        discoveryLimit: 5
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: test
+  namespace: kargo-demo
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: main
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps: []
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: uat
+  namespace: kargo-demo
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: main
+      sources:
+        stages:
+          - test
+  promotionTemplate:
+    spec:
+      steps: []
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: prod
+  namespace: kargo-demo
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: main
+      sources:
+        stages:
+          - uat
+  promotionTemplate:
+    spec:
+      steps: []

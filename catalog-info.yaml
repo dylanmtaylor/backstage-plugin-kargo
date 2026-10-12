@@ -1,13 +1,21 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: kargo-plugin-workspace
-  description: An example of a Backstage application.
-  # Example for optional annotations
-  # annotations:
-  #   github.com/project-slug: backstage/backstage
-  #   backstage.io/techdocs-ref: dir:.
+  name: backstage-plugin-kargo
+  description: Backstage plugins that show Kargo Stages, Promotions, Freight, and Warehouses.
+  annotations:
+    github.com/project-slug: dylanmtaylor/backstage-plugin-kargo
+  tags:
+    - backstage-plugin
+    - kargo
+    - gitops
+  links:
+    - url: https://github.com/dylanmtaylor/backstage-plugin-kargo
+      title: Source
+      icon: github
+    - url: https://kargo.io
+      title: Kargo
 spec:
-  type: website
-  owner: john@example.com
+  type: library
+  owner: user:default/dylanmtaylor
   lifecycle: experimental

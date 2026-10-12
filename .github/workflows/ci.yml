@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    env:
+      CI: true
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Cache yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.yarn/berry/cache
+            node_modules/.cache
+          key: yarn-${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-node${{ matrix.node }}-
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Type check
+        run: yarn tsc
+
+      - name: Lint
+        run: yarn lint:all
+
+      - name: Prettier
+        run: yarn prettier:check
+
+      - name: Package metadata
+        run: yarn backstage-cli repo fix --check
+
+      - name: Test
+        run: yarn test --coverage
+
+      - name: Build
+        run: yarn build:all
+
+      - name: Upload coverage
+        if: matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,5 +1,9 @@
 # @dylanmtaylor/backstage-plugin-kargo-common
 
-Welcome to the common package for the kargo plugin!
+Shared code for the Kargo Backstage plugins.
 
-_This plugin was created through the Backstage CLI_
+- `KARGO_ANNOTATIONS` and the individual `KARGO_*_ANNOTATION` constants.
+- TypeScript types for Kargo `Project`, `Stage`, `Promotion`, `Freight`, and `Warehouse` resources as returned by the Kargo REST API.
+- Helpers: `kargoUiLinks`, `summarizeFreightArtifacts`, `freightDisplayName`, `normalizeHealth`, `isTerminalPromotionPhase`, `parseAnnotationList`.
+
+This package has no runtime dependencies.

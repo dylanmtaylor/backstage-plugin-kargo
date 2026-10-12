@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Verify
+        run: |
+          yarn tsc
+          yarn test
+          yarn backstage-cli repo build --all
+
+      - name: Check tag matches package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          for pkg in plugins/kargo-common plugins/kargo-backend plugins/kargo; do
+            version="$(node -p "require('./$pkg/package.json').version")"
+            if [ "$version" != "$tag" ]; then
+              echo "::error::$pkg is at $version but the tag is $tag"
+              exit 1
+            fi
+          done
+
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for pkg in plugins/kargo-common plugins/kargo-backend plugins/kargo; do
+            (cd "$pkg" && yarn npm publish --access public --tolerate-republish)
+          done
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
